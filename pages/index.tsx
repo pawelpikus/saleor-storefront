@@ -1,7 +1,16 @@
 import React from "react";
-import Products from "../components/ProductCollection";
 import clsx from "clsx";
-import { Hits, InstantSearch, SearchBox } from "react-instantsearch-dom";
+import {
+  ClearRefinements,
+  Hits,
+  HitsPerPage,
+  InstantSearch,
+  Pagination,
+  RefinementList,
+  SearchBox,
+  SortBy,
+  Stats,
+} from "react-instantsearch-dom";
 import TypesenseInstantSearchAdapter from "typesense-instantsearch-adapter";
 import Hit from "~/components/Hit";
 
@@ -65,15 +74,70 @@ const Home = () => {
           </div>
         </header>
         <InstantSearch indexName="products" searchClient={searchClient}>
-          <div>
-            <aside></aside>
-            <main>
-              <div className="px-8 mx-auto max-w-7xl">
+          <div className="flex justify-between gap-16 px-8">
+            <aside className="pt-8 max-w-fit">
+              <h3 className="text-xl font-bold">Filter by Categories</h3>
+              <RefinementList
+                className="mt-3"
+                attribute="category"
+                limit={3}
+                showMore={true}
+                showMoreLimit={10}
+                searchable={true}
+                transformItems={(items: any[]) =>
+                  items.sort((a, b) => (a.label > b.label ? 1 : -1))
+                }
+              />
+              <ClearRefinements className="mt-5" />
+            </aside>
+            <main className="flex flex-col items-center self-center w-full">
+              <div className="w-full my-8">
                 <div className="mb-8">
                   <SearchBox />
                 </div>
+                <div className="flex items-center justify-between mb-4">
+                  <Stats
+                    translations={{
+                      stats(nbHits, processingTimeMS) {
+                        let hitCountPhrase;
+                        if (nbHits === 0) {
+                          hitCountPhrase = "No products";
+                        } else if (nbHits === 1) {
+                          hitCountPhrase = "1 product";
+                        } else {
+                          hitCountPhrase = `${nbHits.toLocaleString()} products`;
+                        }
+                        return `${hitCountPhrase} found in ${processingTimeMS.toLocaleString()}ms`;
+                      },
+                    }}
+                  />
+                  <HitsPerPage
+                    className="ms-4"
+                    items={[
+                      { label: "9 per page", value: 9 },
+                      { label: "18 per page", value: 18 },
+                    ]}
+                    defaultRefinement={9}
+                  />
+                  <SortBy
+                    items={[
+                      { label: "Relevancy", value: "products" },
+                      {
+                        label: "Price (asc)",
+                        value: "products/sort/price:asc",
+                      },
+                      {
+                        label: "Price (desc)",
+                        value: "products/sort/price:desc",
+                      },
+                    ]}
+                    defaultRefinement="products"
+                  />
+                </div>
+
                 <Hits hitComponent={Hit} />
               </div>
+              <Pagination />
             </main>
           </div>
         </InstantSearch>
